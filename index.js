@@ -6,9 +6,15 @@ const moment = require('moment');
 const short = require('short-uuid');
 const reservations = require('./data/reservations')
 const orders = require('./data/orders')
+const schemaValidation = require('./middlewares/schema-validation');
+const oauth = require('./middlewares/o-auth');
+const oauthData = require('./data/oauth');
+const availability = require('./data/availability');
 
 // Middleware
 app.use(express.json())
+app.use(schemaValidation);
+app.use(oauth);
 
 //Register Routes
 app.get('/helloworld', (req, res) => {
@@ -20,16 +26,31 @@ app.post('/ping', (req, res) => {
     res.send(req.body)
 });
 
+app.post('/v1/partner/auth/token', (req, res) => {
+    const newToken = {
+        token: short.uuid(),
+        validTo: moment().add(1,'hour').toISOString()
+    }
+    oauthData.tokens.push(newToken);
+    res.send(newToken);
+})
+
 app.post('/v1/partner/fulfillment/availability/pickup', (req, res) => {
+    const key = req.body.sku + ":" + (req.body.storeId || req.body.postalCode);
+    let skuAvailability = availability[key];
+
+    if (!skuAvailability) {
+        skuAvailability =[{
+            storeId: req.body.storeId || (parseInt(Math.random() * 10) + 100).toString(),
+            distance: req.body.storeId ? 0 : parseInt(Math.random() * 50),
+        }] 
+        availability[key] = _.cloneDeep(skuAvailability);
+    }
+    skuAvailability.promisedReadyForPickupDate = moment().format('YYYY-MM-DD');
+
     const response = {
         criteria:  _.cloneDeep(req.body),
-        availability: [
-            {
-                storeId: req.body.storeId || "101",
-                distance: req.body.storeId ? 0 : parseInt(Math.random() * 50),
-                promisedReadyForPickupDate: moment().format('YYYY-MM-DD')
-            }
-        ]
+        availability: skuAvailability
     }
     res.send(response)
 });
