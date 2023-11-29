@@ -1,4 +1,3 @@
-const schema = require('../include/schema');
 const oauth = require('../data/oauth');
 const _ = require('lodash');
 const moment = require('moment');
@@ -20,7 +19,7 @@ module.exports = function (req, res, next) {
     }
   } else {
     const tokenFound = _.find(oauth.tokens, { token: input });
-    if (!tokenFound || moment(tokenFound.validTo).isBefore(moment())) {
+    if (!tokenFound || moment(tokenFound.validThru).isBefore(moment())) {
       return res.status(401).send({
         "statusCode": 401,
         "error": "Unauthorized",

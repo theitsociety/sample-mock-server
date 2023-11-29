@@ -29,7 +29,7 @@ app.post('/ping', (req, res) => {
 app.post('/v1/partner/auth/token', (req, res) => {
     const newToken = {
         token: short.uuid(),
-        validTo: moment().add(1,'hour').toISOString()
+        validThru: moment().add(1,'hour').toISOString()
     }
     oauthData.tokens.push(newToken);
     res.send(newToken);
@@ -46,7 +46,9 @@ app.post('/v1/partner/fulfillment/availability/pickup', (req, res) => {
         }] 
         availability[key] = _.cloneDeep(skuAvailability);
     }
-    skuAvailability.promisedReadyForPickupDate = moment().format('YYYY-MM-DD');
+    _.forEach(skuAvailability, avail =>  {
+        avail.promisedReadyForPickupDate = moment().format('YYYY-MM-DD');
+    });
 
     const response = {
         criteria:  _.cloneDeep(req.body),

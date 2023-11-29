@@ -8,7 +8,7 @@ module.exports={
   "tokens": [
     {
       "token": "sampleToken",
-      "validTo": "2023-11-27T08:02:48Z" 
+      "validThru": "2023-11-27T08:02:48Z" 
     }
   ]
 }
